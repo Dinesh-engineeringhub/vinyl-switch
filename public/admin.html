@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vinyl Switch — Staff Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🎛️ Staff Dashboard</div>
+    <a class="ghost-btn" href="/">Public app</a>
+  </header>
+
+  <main>
+    <!-- Token gate -->
+    <section id="gate" class="card">
+      <h2>Staff login</h2>
+      <p class="muted">Enter the admin token (from your server's ADMIN_TOKEN).</p>
+      <label>Admin token
+        <input id="tokenInput" type="password" placeholder="change-me-admin" />
+      </label>
+      <button class="primary-btn block" id="loginBtn">Open dashboard</button>
+      <p id="gateMsg" class="msg"></p>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dash" style="display:none">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2>Machines</h2>
+          <button class="ghost-btn" id="refreshBtn">Refresh</button>
+        </div>
+        <div id="overview" class="list" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card">
+        <h2>Add a location</h2>
+        <label>Name <input id="locName" placeholder="Downtown Studio" /></label>
+        <label>Address <input id="locAddr" placeholder="12 MG Road" /></label>
+        <button class="primary-btn block" id="addLocBtn">Add location</button>
+        <p id="locMsg" class="msg"></p>
+      </div>
+
+      <div class="card">
+        <h2>Add a machine</h2>
+        <label>Location
+          <select id="machLoc"></select>
+        </label>
+        <label>Machine name <input id="machName" placeholder="Booth A" /></label>
+        <label>Device ID (must match the ESP32 firmware)
+          <input id="machDevice" placeholder="vinyl-001" />
+        </label>
+        <button class="primary-btn block" id="addMachBtn">Add machine</button>
+        <p id="machMsg" class="msg"></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/admin.js"></script>
+</body>
+</html>

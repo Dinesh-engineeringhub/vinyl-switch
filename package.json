@@ -1,0 +1,18 @@
+{
+  "name": "vinyl-switch-server",
+  "version": "0.1.0",
+  "description": "Booking + ESP32 relay control server for hourly music-machine rentals",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "seed": "node src/seed.js",
+    "sim": "node tools/sim-device.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2",
+    "mqtt": "^5.10.1"
+  }
+}

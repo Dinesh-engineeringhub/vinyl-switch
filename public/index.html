@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0e0e12" />
+  <title>Vinyl Switch — Book a Music Session</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icons/icon.svg" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🎧 Vinyl Switch</div>
+    <button id="navBookBtn" class="ghost-btn">Book</button>
+  </header>
+
+  <main id="app">
+    <!-- HOME: activate on arrival -------------------------------------- -->
+    <section id="view-home" class="view active">
+      <div class="card hero">
+        <h1>Start your session</h1>
+        <p class="muted">Already booked? Enter your 6-digit code to switch on your machine.</p>
+        <form id="activateForm" class="activate">
+          <input id="codeInput" inputmode="numeric" maxlength="6" pattern="[0-9]*"
+                 placeholder="••••••" autocomplete="one-time-code" />
+          <button class="primary-btn" type="submit">Start machine</button>
+        </form>
+        <p id="activateMsg" class="msg" role="status"></p>
+      </div>
+
+      <div class="card">
+        <h2>No booking yet?</h2>
+        <p class="muted">Reserve a 1-hour slot on any machine.</p>
+        <button id="startBookingBtn" class="primary-btn block">Book a session</button>
+      </div>
+    </section>
+
+    <!-- BOOK STEP 1: location ------------------------------------------ -->
+    <section id="view-location" class="view">
+      <button class="back" data-back>← Back</button>
+      <h1>Choose a location</h1>
+      <div id="locationList" class="list"></div>
+    </section>
+
+    <!-- BOOK STEP 2: machine ------------------------------------------- -->
+    <section id="view-machine" class="view">
+      <button class="back" data-back>← Back</button>
+      <h1 id="machineTitle">Choose a machine</h1>
+      <div id="machineList" class="list"></div>
+    </section>
+
+    <!-- BOOK STEP 3: slot ---------------------------------------------- -->
+    <section id="view-slot" class="view">
+      <button class="back" data-back>← Back</button>
+      <h1 id="slotTitle">Pick a time</h1>
+      <p class="muted">Each session lasts <span id="sessionLen">60</span> minutes.</p>
+      <div id="slotList" class="slots"></div>
+    </section>
+
+    <!-- BOOK STEP 4: details ------------------------------------------- -->
+    <section id="view-details" class="view">
+      <button class="back" data-back>← Back</button>
+      <h1>Your details</h1>
+      <div id="slotSummary" class="card summary"></div>
+      <form id="detailsForm" class="card">
+        <label>Your name
+          <input id="nameInput" required placeholder="e.g. Arjun" />
+        </label>
+        <label>Phone (optional)
+          <input id="phoneInput" inputmode="tel" placeholder="e.g. 98765 43210" />
+        </label>
+        <button class="primary-btn block" type="submit">Confirm booking</button>
+        <p id="bookingMsg" class="msg"></p>
+      </form>
+    </section>
+
+    <!-- CONFIRMATION --------------------------------------------------- -->
+    <section id="view-confirm" class="view">
+      <div class="card success">
+        <h1>You're booked! 🎉</h1>
+        <div id="confirmDetails"></div>
+        <div class="code-box">
+          <span class="muted">Your activation code</span>
+          <div id="confirmCode" class="big-code">000000</div>
+        </div>
+        <p class="muted">Show or enter this code at the machine at your start time to switch it on.</p>
+        <button id="doneBtn" class="primary-btn block">Done</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <a href="/admin.html">Staff dashboard</a>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

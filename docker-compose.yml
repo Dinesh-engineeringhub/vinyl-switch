@@ -1,0 +1,18 @@
+# Vinyl Switch — one-command deploy.
+#   1. cp .env.production.example .env   (then edit the secrets)
+#   2. docker compose up -d --build
+services:
+  vinyl-switch:
+    build: .
+    container_name: vinyl-switch
+    restart: unless-stopped
+    ports:
+      - "3000:3000"   # booking app + API (map to "80:3000" if you want plain http://<ip>/)
+      - "1883:1883"   # MQTT — ESP32 devices connect to <public-ip>:1883
+    env_file:
+      - .env
+    volumes:
+      - vinyl-data:/app/data   # persists the SQLite database across restarts
+
+volumes:
+  vinyl-data:
