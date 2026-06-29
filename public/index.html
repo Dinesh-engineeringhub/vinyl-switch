@@ -81,14 +81,11 @@
       <div class="card success">
         <h1>You're booked! 🎉</h1>
         <div id="confirmDetails"></div>
-        <p class="muted">Walk up to the machine and tap the button below to turn it on.</p>
-        <button id="activateNowBtn" class="primary-btn block">Turn on machine</button>
+        <p class="muted" style="margin-bottom:0.5rem">Scan this QR with your phone camera to turn on the machine.</p>
+        <div id="activateQR" style="display:flex;justify-content:center;margin:1rem 0;background:#fff;padding:12px;border-radius:12px"></div>
         <p id="activateNowMsg" class="msg" role="status"></p>
-        <p class="muted" style="margin-top:1.2rem">
-          Activating later?
-          <a id="activateLink" href="#" style="word-break:break-all">Save this link</a>
-        </p>
-        <button id="doneBtn" class="ghost-btn block" style="margin-top:1rem">Done</button>
+        <button id="activateNowBtn" class="ghost-btn block" style="margin-top:0.5rem">Tap to activate instead</button>
+        <button id="doneBtn" class="ghost-btn block" style="margin-top:0.5rem">Done</button>
       </div>
     </section>
   </main>
@@ -97,6 +94,7 @@
     <a href="/admin.html">Staff dashboard</a>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

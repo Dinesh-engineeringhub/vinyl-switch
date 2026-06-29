@@ -194,10 +194,15 @@ function showConfirmation(booking) {
     <p><b>${booking.machine_name}</b> · ${booking.location_name}<br>
     <span class="muted">${fmtDay(booking.start_time)}, ${fmtTime(booking.start_time)} – ${fmtTime(booking.end_time)}</span></p>`;
 
-  const saveUrl = `${location.origin}/?c=${booking.activation_code}`;
-  const linkEl = document.getElementById('activateLink');
-  linkEl.href = saveUrl;
-  linkEl.textContent = saveUrl;
+  const activateUrl = `${location.origin}/?c=${booking.activation_code}`;
+  const qrContainer = document.getElementById('activateQR');
+  qrContainer.innerHTML = '';
+  new QRCode(qrContainer, {
+    text: activateUrl,
+    width: 200,
+    height: 200,
+    correctLevel: QRCode.CorrectLevel.M,
+  });
 
   document.getElementById('activateNowMsg').textContent = '';
   document.getElementById('activateNowMsg').className = 'msg';
