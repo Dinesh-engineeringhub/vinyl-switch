@@ -188,14 +188,40 @@ document.getElementById('detailsForm').addEventListener('submit', async (e) => {
 
 function showConfirmation(booking) {
   show('view-confirm');
+  state.activationCode = booking.activation_code;
+
   document.getElementById('confirmDetails').innerHTML = `
     <p><b>${booking.machine_name}</b> · ${booking.location_name}<br>
     <span class="muted">${fmtDay(booking.start_time)}, ${fmtTime(booking.start_time)} – ${fmtTime(booking.end_time)}</span></p>`;
-  document.getElementById('confirmCode').textContent = booking.activation_code;
-  // reset the form for next time
+
+  const saveUrl = `${location.origin}/?c=${booking.activation_code}`;
+  const linkEl = document.getElementById('activateLink');
+  linkEl.href = saveUrl;
+  linkEl.textContent = saveUrl;
+
+  document.getElementById('activateNowMsg').textContent = '';
+  document.getElementById('activateNowMsg').className = 'msg';
   document.getElementById('detailsForm').reset();
   document.getElementById('bookingMsg').textContent = '';
 }
+
+async function activateWithCode(code, msgEl) {
+  msgEl.textContent = 'Turning on…';
+  msgEl.className = 'msg';
+  try {
+    const res = await api.post('/activate', { code });
+    const mins = Math.round(res.runningForSeconds / 60);
+    msgEl.innerHTML = `✅ <b>${res.booking.machine_name}</b> is on for ${mins} min. Enjoy!`;
+    msgEl.className = 'msg ok';
+  } catch (err) {
+    msgEl.textContent = '⚠️ ' + err.message;
+    msgEl.className = 'msg err';
+  }
+}
+
+document.getElementById('activateNowBtn').addEventListener('click', () => {
+  activateWithCode(state.activationCode, document.getElementById('activateNowMsg'));
+});
 
 // Reusable tile element with a .meta container on the right.
 function tile(title, sub) {
@@ -215,6 +241,13 @@ document.getElementById('doneBtn').onclick = () => {
   show('view-home', { push: false });
 };
 document.querySelectorAll('[data-back]').forEach((b) => (b.onclick = goBack));
+
+// Auto-activate when opened via saved link (?c=XXXXXX)
+const urlCode = new URLSearchParams(location.search).get('c');
+if (urlCode) {
+  history.replaceState({}, '', location.pathname);
+  activateWithCode(urlCode, document.getElementById('activateMsg'));
+}
 
 // Register service worker (PWA / installable).
 if ('serviceWorker' in navigator) {

@@ -81,12 +81,14 @@
       <div class="card success">
         <h1>You're booked! 🎉</h1>
         <div id="confirmDetails"></div>
-        <div class="code-box">
-          <span class="muted">Your activation code</span>
-          <div id="confirmCode" class="big-code">000000</div>
-        </div>
-        <p class="muted">Show or enter this code at the machine at your start time to switch it on.</p>
-        <button id="doneBtn" class="primary-btn block">Done</button>
+        <p class="muted">Walk up to the machine and tap the button below to turn it on.</p>
+        <button id="activateNowBtn" class="primary-btn block">Turn on machine</button>
+        <p id="activateNowMsg" class="msg" role="status"></p>
+        <p class="muted" style="margin-top:1.2rem">
+          Activating later?
+          <a id="activateLink" href="#" style="word-break:break-all">Save this link</a>
+        </p>
+        <button id="doneBtn" class="ghost-btn block" style="margin-top:1rem">Done</button>
       </div>
     </section>
   </main>
