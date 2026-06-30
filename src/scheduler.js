@@ -5,7 +5,8 @@
 // turns off even if the server is briefly unreachable. This is the backup.
 
 import { db } from './db.js';
-import { turnRelayOff } from './mqtt.js';
+import { config } from './config.js';
+import { turnRelayOff, sendQRToDevice, clearDeviceQR } from './mqtt.js';
 import { nowIso } from './util.js';
 
 function tick() {
@@ -26,11 +27,39 @@ function tick() {
 
   // 2) Mark no-shows: booked but never started and the slot has fully passed.
   const noShows = db
-    .prepare(`SELECT id FROM bookings WHERE status = 'booked' AND end_time <= ?`)
+    .prepare(
+      `SELECT b.id, m.device_id FROM bookings b
+         JOIN machines m ON m.id = b.machine_id
+        WHERE b.status = 'booked' AND b.end_time <= ?`
+    )
     .all(now);
   for (const b of noShows) {
     db.prepare(`UPDATE bookings SET status = 'no_show' WHERE id = ?`).run(b.id);
+    clearDeviceQR(b.device_id);
     console.log(`[scheduler] booking #${b.id} marked no_show`);
+  }
+
+  // 3) When a booking enters the activation window (start_time - grace <= now),
+  //    push the unique session QR to the device display so the customer can scan it.
+  const graceMs = config.graceMinutes * 60 * 1000;
+  const windowOpen = new Date(Date.now() + graceMs).toISOString();
+  const upcoming = db
+    .prepare(
+      `SELECT b.activation_code, m.device_id
+         FROM bookings b
+         JOIN machines m ON m.id = b.machine_id
+        WHERE b.status = 'booked'
+          AND b.qr_sent = 0
+          AND b.start_time <= ?
+          AND b.end_time > ?`
+    )
+    .all(windowOpen, now);
+  for (const b of upcoming) {
+    sendQRToDevice(b.device_id, b.activation_code);
+    db.prepare(
+      `UPDATE bookings SET qr_sent = 1 WHERE activation_code = ?`
+    ).run(b.activation_code);
+    console.log(`[scheduler] session QR sent to ${b.device_id}`);
   }
 }
 

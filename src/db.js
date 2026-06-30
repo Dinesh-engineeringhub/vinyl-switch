@@ -58,4 +58,9 @@ db.exec(`
     ON bookings (status);
 `);
 
+// Migration: add qr_sent flag (safe to re-run — ignored if column exists).
+try {
+  db.exec(`ALTER TABLE bookings ADD COLUMN qr_sent INTEGER NOT NULL DEFAULT 0`);
+} catch (_) {}
+
 export default db;

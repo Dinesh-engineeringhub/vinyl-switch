@@ -12,6 +12,7 @@ import { nowIso } from './util.js';
 
 const STATUS_RE = /^machine\/([^/]+)\/status$/;
 const cmdTopic = (deviceId) => `machine/${deviceId}/cmd`;
+const qrTopic  = (deviceId) => `machine/${deviceId}/qr`;
 
 let client = null;
 
@@ -109,4 +110,21 @@ export function turnRelayOn(deviceId, seconds) {
 
 export function turnRelayOff(deviceId) {
   sendRelayCommand(deviceId, 'off', 0);
+}
+
+// Tell the device to display the unique QR for a specific session.
+// The firmware builds the full URL as APP_URL + "/?c=" + code.
+// retain:true means a device that briefly drops will get it on reconnect.
+export function sendQRToDevice(deviceId, activationCode) {
+  if (!client) return;
+  const payload = JSON.stringify({ code: activationCode });
+  client.publish(qrTopic(deviceId), payload, { qos: 1, retain: true }, (err) => {
+    if (err) console.error(`[mqtt] qr publish to ${deviceId} failed:`, err.message);
+  });
+}
+
+// Clear the session QR (session ended or no-show). Device returns to idle screen.
+export function clearDeviceQR(deviceId) {
+  if (!client) return;
+  client.publish(qrTopic(deviceId), JSON.stringify({ code: '' }), { qos: 1, retain: true });
 }
