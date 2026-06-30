@@ -5,6 +5,7 @@ import { Router } from 'express';
 import { config } from './config.js';
 import * as svc from './service.js';
 
+
 export const api = Router();
 
 // Wrap a handler so thrown errors become clean JSON responses.
@@ -19,6 +20,12 @@ const h = (fn) => (req, res) => {
 };
 
 // ---------------------------------------------------------------- public ---
+api.get('/machines/by-device/:deviceId', h((req, res) => {
+  const machine = svc.getMachineByDeviceId(req.params.deviceId);
+  if (!machine) return res.status(404).json({ error: 'Device not found' });
+  res.json(machine);
+}));
+
 api.get('/locations', h((req, res) => {
   res.json(svc.listLocations());
 }));

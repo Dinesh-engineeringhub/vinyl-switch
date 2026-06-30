@@ -53,6 +53,7 @@ async function loadOverview() {
       } else if (m.next) {
         activity = `next: ${m.next.customer_name} @ ${fmt(m.next.start_time)}`;
       }
+      const deviceUrl = `${location.origin}/?device=${encodeURIComponent(m.device_id)}`;
       el.innerHTML = `
         <div>
           <div class="title">${m.name} <span class="muted">(${m.device_id})</span></div>
@@ -63,7 +64,34 @@ async function loadOverview() {
           <span class="badge ${status}">${m.online ? 'Online' : 'Offline'}</span>
           <button class="ghost-btn off-btn" data-id="${m.id}" style="margin-top:8px">Force off</button>
         </div>`;
+
+      // Device QR code for printing and sticking on the machine.
+      const qrWrap = document.createElement('div');
+      qrWrap.style.cssText = 'margin-top:12px;padding:12px;background:#fff;border-radius:8px;display:inline-block;text-align:center';
+      const qrDiv = document.createElement('div');
+      qrWrap.appendChild(qrDiv);
+      const qrLabel = document.createElement('p');
+      qrLabel.style.cssText = 'margin:6px 0 0;font-size:11px;color:#444';
+      qrLabel.textContent = m.name + ' — scan to activate';
+      qrWrap.appendChild(qrLabel);
+      const printBtn = document.createElement('button');
+      printBtn.className = 'ghost-btn';
+      printBtn.textContent = 'Print QR';
+      printBtn.style.cssText = 'margin-top:6px;font-size:12px';
+      printBtn.onclick = () => {
+        const win = window.open('', '_blank');
+        win.document.write(`<html><body style="text-align:center;font-family:sans-serif">
+          <h2>${m.name}</h2><p>${m.location_name}</p>
+          <img src="${qrDiv.querySelector('img').src}" style="width:200px;height:200px"/>
+          <p style="font-size:12px;color:#666">Scan with your phone to start your session</p>
+          <script>window.onload=()=>window.print()<\/script></body></html>`);
+        win.document.close();
+      };
+      qrWrap.appendChild(printBtn);
+      el.appendChild(qrWrap);
       box.appendChild(el);
+
+      new QRCode(qrDiv, { text: deviceUrl, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M });
     }
     box.querySelectorAll('.off-btn').forEach((b) => {
       b.onclick = async () => {

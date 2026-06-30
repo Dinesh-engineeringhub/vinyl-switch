@@ -194,15 +194,15 @@ function showConfirmation(booking) {
     <p><b>${booking.machine_name}</b> · ${booking.location_name}<br>
     <span class="muted">${fmtDay(booking.start_time)}, ${fmtTime(booking.start_time)} – ${fmtTime(booking.end_time)}</span></p>`;
 
-  const activateUrl = `${location.origin}/?c=${booking.activation_code}`;
-  const qrContainer = document.getElementById('activateQR');
-  qrContainer.innerHTML = '';
-  new QRCode(qrContainer, {
-    text: activateUrl,
-    width: 200,
-    height: 200,
-    correctLevel: QRCode.CorrectLevel.M,
-  });
+  // Save session to localStorage so the device QR scan can auto-activate.
+  localStorage.setItem('vinyl_session', JSON.stringify({
+    code: booking.activation_code,
+    deviceId: booking.device_id,
+    startTime: booking.start_time,
+    endTime: booking.end_time,
+    machineName: booking.machine_name,
+    locationName: booking.location_name,
+  }));
 
   document.getElementById('activateNowMsg').textContent = '';
   document.getElementById('activateNowMsg').className = 'msg';
@@ -247,11 +247,47 @@ document.getElementById('doneBtn').onclick = () => {
 };
 document.querySelectorAll('[data-back]').forEach((b) => (b.onclick = goBack));
 
+// Customer scans the permanent QR sticker on a device (?device=vinyl-001).
+// Reads their saved session from localStorage and activates if it matches.
+async function handleDeviceScan(deviceId) {
+  const msgEl = document.getElementById('activateMsg');
+  const raw = localStorage.getItem('vinyl_session');
+
+  if (!raw) {
+    msgEl.textContent = 'No booking found. Please book a session first.';
+    msgEl.className = 'msg err';
+    return;
+  }
+
+  const sess = JSON.parse(raw);
+
+  if (sess.deviceId !== deviceId) {
+    let machineName = deviceId;
+    try {
+      const m = await api.get(`/machines/by-device/${encodeURIComponent(deviceId)}`);
+      machineName = m.name;
+    } catch (_) {}
+    msgEl.textContent = `Your booking is for ${sess.machineName}, not ${machineName}. Please go to the correct machine.`;
+    msgEl.className = 'msg err';
+    return;
+  }
+
+  await activateWithCode(sess.code, msgEl);
+  // Clear saved session once activated so it can't be reused.
+  if (msgEl.className.includes('ok')) localStorage.removeItem('vinyl_session');
+}
+
 // Auto-activate when opened via saved link (?c=XXXXXX)
-const urlCode = new URLSearchParams(location.search).get('c');
+const urlParams = new URLSearchParams(location.search);
+const urlCode = urlParams.get('c');
+const urlDevice = urlParams.get('device');
+
 if (urlCode) {
   history.replaceState({}, '', location.pathname);
   activateWithCode(urlCode, document.getElementById('activateMsg'));
+} else if (urlDevice) {
+  history.replaceState({}, '', location.pathname);
+  handleDeviceScan(urlDevice);
 }
 
 // Register service worker (PWA / installable).

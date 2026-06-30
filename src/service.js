@@ -28,6 +28,17 @@ export function getMachine(machineId) {
   return db.prepare(`SELECT * FROM machines WHERE id = ?`).get(machineId);
 }
 
+export function getMachineByDeviceId(deviceId) {
+  return db
+    .prepare(
+      `SELECT m.*, l.name AS location_name
+         FROM machines m
+         JOIN locations l ON l.id = m.location_id
+        WHERE m.device_id = ?`
+    )
+    .get(deviceId);
+}
+
 // Returns future slots for a machine, each marked available/booked.
 export function getAvailability(machineId, days = 2) {
   const slots = generateSlots({ days });
