@@ -21,6 +21,7 @@ function tick() {
     const machine = db.prepare(`SELECT device_id FROM machines WHERE id = ?`).get(b.machine_id);
     if (machine) {
       turnRelayOff(machine.device_id);
+      clearDeviceQR(machine.device_id); // return the display to idle, drop the stale QR
       console.log(`[scheduler] session #${b.id} completed -> relay off (${machine.device_id})`);
     }
   }

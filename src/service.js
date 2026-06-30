@@ -3,7 +3,7 @@
 
 import { db } from './db.js';
 import { config } from './config.js';
-import { turnRelayOn, turnRelayOff } from './mqtt.js';
+import { turnRelayOn, turnRelayOff, clearDeviceQR } from './mqtt.js';
 import { makeActivationCode, generateSlots, addMinutes, nowIso } from './util.js';
 
 // Statuses that occupy a time slot (so it can't be double-booked).
@@ -222,6 +222,7 @@ export function forceOff(machineId) {
     `UPDATE bookings SET status = 'completed' WHERE machine_id = ? AND status = 'active'`
   ).run(machineId);
   turnRelayOff(machine.device_id);
+  clearDeviceQR(machine.device_id); // stop showing the finished session's QR
   return { ok: true };
 }
 
