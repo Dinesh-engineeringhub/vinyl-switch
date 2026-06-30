@@ -46,10 +46,19 @@ async function loadOverview() {
       const el = document.createElement('div');
       el.className = 'tile';
       const status = m.online ? 'online' : 'offline';
-      const relay = m.relay_state === 'on' ? '🔴 ON' : '⚪ off';
+
+      // A machine in an active session is running until its booked end time,
+      // even if the device briefly loses internet (the ESP32's safety timer
+      // keeps the relay on). Trust the booking, not the last relay report —
+      // otherwise an offline device wrongly shows "off" mid-session.
+      const inSession = m.current && new Date(m.current.end_time).getTime() > Date.now();
+      const relayOn = inSession || m.relay_state === 'on';
+      const relay = relayOn ? '🔴 ON' : '⚪ off';
+
       let activity = '<span class="muted">idle</span>';
       if (m.current) {
         activity = `▶️ <b>${m.current.customer_name}</b> until ${fmt(m.current.end_time)}`;
+        if (!m.online) activity += ' <span class="badge offline">device offline — still running</span>';
       } else if (m.next) {
         activity = `next: ${m.next.customer_name} @ ${fmt(m.next.start_time)}`;
       }
