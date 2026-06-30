@@ -43,11 +43,14 @@ const fmtDay = (iso) =>
 
 // ---------------------------------------------------------------- QR SCAN ---
 let qrScanner = null;
+let torchOn = false;
 
 function startScanner() {
   show('view-scan');
   document.getElementById('scanMsg').textContent = '';
   document.getElementById('scanMsg').className = 'msg';
+  document.getElementById('torchBtn').style.display = 'none';
+  torchOn = false;
 
   qrScanner = new Html5Qrcode('qr-reader');
   qrScanner.start(
@@ -73,7 +76,17 @@ function startScanner() {
       activateWithCode(code, { fromQR: true });
     },
     () => {} // frame decode errors are normal — ignore them
-  ).catch((err) => {
+  ).then(() => {
+    // Show the flashlight button only if the device's camera supports torch.
+    try {
+      const caps = qrScanner.getRunningTrackCapabilities();
+      const torchBtn = document.getElementById('torchBtn');
+      if (caps && caps.torch) {
+        torchBtn.textContent = '🔦 Flashlight: Off';
+        torchBtn.style.display = 'block';
+      }
+    } catch (_) {}
+  }).catch((err) => {
     document.getElementById('scanMsg').textContent = '⚠️ Camera error: ' + err;
     document.getElementById('scanMsg').className = 'msg err';
   });
@@ -85,12 +98,28 @@ async function stopScanner() {
     qrScanner.clear();
     qrScanner = null;
   }
+  torchOn = false;
+  document.getElementById('torchBtn').style.display = 'none';
 }
 
 document.getElementById('scanQRBtn').addEventListener('click', startScanner);
 document.getElementById('stopScanBtn').addEventListener('click', async () => {
   await stopScanner();
   show('view-home', { push: false });
+});
+
+document.getElementById('torchBtn').addEventListener('click', async () => {
+  if (!qrScanner) return;
+  const torchBtn = document.getElementById('torchBtn');
+  const next = !torchOn;
+  try {
+    await qrScanner.applyVideoConstraints({ advanced: [{ torch: next }] });
+    torchOn = next;
+    torchBtn.textContent = torchOn ? '🔦 Flashlight: On' : '🔦 Flashlight: Off';
+  } catch (_) {
+    document.getElementById('scanMsg').textContent = 'Flashlight not available on this device.';
+    document.getElementById('scanMsg').className = 'msg err';
+  }
 });
 
 // ---------------------------------------------------------------- BOOKING ---
