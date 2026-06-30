@@ -304,7 +304,9 @@ async function activateWithCode(code, { fromQR = false } = {}) {
     const res = await api.post('/activate', { code });
     const mins = Math.round(res.runningForSeconds / 60);
     if (fromQR) {
-      document.getElementById('activeMachineName').textContent = res.booking.machine_name + ' is ON!';
+      const name = (res.booking.customer_name || '').trim();
+      document.getElementById('activeWelcome').textContent = name ? `Welcome, ${name}!` : 'Welcome!';
+      document.getElementById('activeMachineName').textContent = res.booking.machine_name + ' is ON 🎵';
       document.getElementById('activeSessionInfo').textContent = `Your ${mins}-minute session has started. Enjoy!`;
       show('view-active', { push: false });
     }
