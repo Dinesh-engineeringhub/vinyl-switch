@@ -93,19 +93,21 @@ function onStatusMessage(topic, payload) {
 }
 
 // --- Outgoing relay commands ----------------------------------------------
-export function sendRelayCommand(deviceId, action, seconds = 0) {
+export function sendRelayCommand(deviceId, action, seconds = 0, name = '') {
   if (!client) {
     console.error('[mqtt] client not started; cannot send command');
     return;
   }
-  const payload = JSON.stringify({ action, seconds });
+  const payload = JSON.stringify({ action, seconds, name });
   client.publish(cmdTopic(deviceId), payload, { qos: 1, retain: false }, (err) => {
     if (err) console.error(`[mqtt] publish to ${deviceId} failed:`, err.message);
   });
 }
 
-export function turnRelayOn(deviceId, seconds) {
-  sendRelayCommand(deviceId, 'on', seconds);
+// `name` (optional) is the customer's name, shown as a welcome on the device
+// display. Omitted on auto-resume so a reconnect doesn't re-greet.
+export function turnRelayOn(deviceId, seconds, name = '') {
+  sendRelayCommand(deviceId, 'on', seconds, name);
 }
 
 export function turnRelayOff(deviceId) {

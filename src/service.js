@@ -147,7 +147,7 @@ export function activateByCode(code) {
     `UPDATE bookings SET status = 'active', activated_at = ? WHERE id = ?`
   ).run(nowIso(), booking.id);
 
-  turnRelayOn(machine.device_id, remainingSec);
+  turnRelayOn(machine.device_id, remainingSec, booking.customer_name || '');
   return { booking: getBooking(booking.id), runningForSeconds: remainingSec };
 }
 
