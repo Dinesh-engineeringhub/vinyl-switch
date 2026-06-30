@@ -21,19 +21,26 @@
     <section id="view-home" class="view active">
       <div class="card hero">
         <h1>Start your session</h1>
-        <p class="muted">Already booked? Enter your 6-digit code to switch on your machine.</p>
-        <form id="activateForm" class="activate">
-          <input id="codeInput" inputmode="numeric" maxlength="6" pattern="[0-9]*"
-                 placeholder="••••••" autocomplete="one-time-code" />
-          <button class="primary-btn" type="submit">Start machine</button>
-        </form>
+        <p class="muted">Scan the QR code on the machine display to start your session.</p>
+        <button id="scanQRBtn" class="primary-btn block" style="margin-top:1rem">Scan QR Code</button>
         <p id="activateMsg" class="msg" role="status"></p>
       </div>
 
       <div class="card">
         <h2>No booking yet?</h2>
-        <p class="muted">Reserve a 1-hour slot on any machine.</p>
+        <p class="muted">Reserve a slot on any machine.</p>
         <button id="startBookingBtn" class="primary-btn block">Book a session</button>
+      </div>
+    </section>
+
+    <!-- QR SCANNER ------------------------------------------------------ -->
+    <section id="view-scan" class="view">
+      <div style="padding:1rem">
+        <button class="back" id="stopScanBtn">← Cancel</button>
+        <h1 style="margin:0.5rem 0 1rem">Scan machine QR</h1>
+        <p class="muted" style="margin-bottom:1rem">Point your camera at the QR code on the machine display.</p>
+        <div id="qr-reader" style="border-radius:12px; overflow:hidden;"></div>
+        <p id="scanMsg" class="msg" role="status" style="margin-top:1rem"></p>
       </div>
     </section>
 
@@ -81,10 +88,19 @@
       <div class="card success">
         <h1>You're booked! 🎉</h1>
         <div id="confirmDetails"></div>
-        <p class="muted" style="margin:1rem 0 0.25rem">When you arrive, scan the QR code on the machine to start your session.</p>
-        <p id="activateNowMsg" class="msg" role="status"></p>
-        <button id="activateNowBtn" class="ghost-btn block" style="margin-top:0.5rem">Activate now instead</button>
+        <p class="muted" style="margin:1rem 0 0.5rem">When you arrive, scan the QR code shown on the machine display to start your session.</p>
         <button id="doneBtn" class="ghost-btn block" style="margin-top:0.5rem">Done</button>
+      </div>
+    </section>
+
+    <!-- ACTIVE SESSION (shown after QR scan turns machine on) ---------- -->
+    <section id="view-active" class="view">
+      <div class="card success" style="text-align:center; padding: 2rem 1.5rem;">
+        <div style="font-size:3rem; margin-bottom:0.5rem">🎵</div>
+        <h1 id="activeMachineName">Machine is ON!</h1>
+        <p id="activeSessionInfo" class="muted"></p>
+        <p class="muted" style="margin-top:1.5rem; font-size:0.85rem">The machine will switch off automatically when your session ends.</p>
+        <button id="activeHomeBtn" class="ghost-btn block" style="margin-top:1.5rem">Back to home</button>
       </div>
     </section>
   </main>
@@ -93,7 +109,7 @@
     <a href="/admin.html">Staff dashboard</a>
   </footer>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

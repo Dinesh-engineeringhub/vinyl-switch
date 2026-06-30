@@ -41,28 +41,56 @@ const fmtTime = (iso) =>
 const fmtDay = (iso) =>
   new Date(iso).toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' });
 
-// ---------------------------------------------------------------- ACTIVATE --
-document.getElementById('activateForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const msg = document.getElementById('activateMsg');
-  const code = document.getElementById('codeInput').value.trim();
-  if (code.length !== 6) {
-    msg.textContent = 'Enter your 6-digit code.';
-    msg.className = 'msg err';
-    return;
+// ---------------------------------------------------------------- QR SCAN ---
+let qrScanner = null;
+
+function startScanner() {
+  show('view-scan');
+  document.getElementById('scanMsg').textContent = '';
+  document.getElementById('scanMsg').className = 'msg';
+
+  qrScanner = new Html5Qrcode('qr-reader');
+  qrScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 240, height: 240 } },
+    async (decodedText) => {
+      await stopScanner();
+      // Extract ?c= code from the scanned URL
+      let code = null;
+      try {
+        const u = new URL(decodedText);
+        code = u.searchParams.get('c');
+      } catch {
+        code = decodedText.trim(); // fallback: raw code
+      }
+      if (!code) {
+        const msg = document.getElementById('activateMsg');
+        msg.textContent = '⚠️ Invalid QR code. Please scan the machine display.';
+        msg.className = 'msg err';
+        show('view-home', { push: false });
+        return;
+      }
+      activateWithCode(code, { fromQR: true });
+    },
+    () => {} // frame decode errors are normal — ignore them
+  ).catch((err) => {
+    document.getElementById('scanMsg').textContent = '⚠️ Camera error: ' + err;
+    document.getElementById('scanMsg').className = 'msg err';
+  });
+}
+
+async function stopScanner() {
+  if (qrScanner) {
+    await qrScanner.stop().catch(() => {});
+    qrScanner.clear();
+    qrScanner = null;
   }
-  msg.textContent = 'Starting…';
-  msg.className = 'msg';
-  try {
-    const res = await api.post('/activate', { code });
-    const mins = Math.round(res.runningForSeconds / 60);
-    msg.innerHTML = `✅ <b>${res.booking.machine_name}</b> is on for ${mins} min. Enjoy!`;
-    msg.className = 'msg ok';
-    document.getElementById('codeInput').value = '';
-  } catch (err) {
-    msg.textContent = '⚠️ ' + err.message;
-    msg.className = 'msg err';
-  }
+}
+
+document.getElementById('scanQRBtn').addEventListener('click', startScanner);
+document.getElementById('stopScanBtn').addEventListener('click', async () => {
+  await stopScanner();
+  show('view-home', { push: false });
 });
 
 // ---------------------------------------------------------------- BOOKING ---
@@ -210,23 +238,34 @@ function showConfirmation(booking) {
   document.getElementById('bookingMsg').textContent = '';
 }
 
-async function activateWithCode(code, msgEl) {
-  msgEl.textContent = 'Turning on…';
-  msgEl.className = 'msg';
+async function activateWithCode(code, { fromQR = false } = {}) {
   try {
     const res = await api.post('/activate', { code });
     const mins = Math.round(res.runningForSeconds / 60);
-    msgEl.innerHTML = `✅ <b>${res.booking.machine_name}</b> is on for ${mins} min. Enjoy!`;
-    msgEl.className = 'msg ok';
+    if (fromQR) {
+      document.getElementById('activeMachineName').textContent = res.booking.machine_name + ' is ON!';
+      document.getElementById('activeSessionInfo').textContent = `Your ${mins}-minute session has started. Enjoy!`;
+      show('view-active', { push: false });
+    }
+    return res;
   } catch (err) {
-    msgEl.textContent = '⚠️ ' + err.message;
-    msgEl.className = 'msg err';
+    if (fromQR) {
+      const msgEl = document.getElementById('activateMsg');
+      msgEl.textContent = '⚠️ ' + err.message;
+      msgEl.className = 'msg err';
+      show('view-home', { push: false });
+    }
+    throw err;
   }
 }
 
-document.getElementById('activateNowBtn').addEventListener('click', () => {
-  activateWithCode(state.activationCode, document.getElementById('activateNowMsg'));
+document.getElementById('activeHomeBtn').addEventListener('click', () => {
+  history.length = 0;
+  show('view-home', { push: false });
 });
+
+// Stop scanner if user navigates away via browser back
+window.addEventListener('popstate', () => stopScanner());
 
 // Reusable tile element with a .meta container on the right.
 function tile(title, sub) {
@@ -284,7 +323,7 @@ const urlDevice = urlParams.get('device');
 
 if (urlCode) {
   history.replaceState({}, '', location.pathname);
-  activateWithCode(urlCode, document.getElementById('activateMsg'));
+  activateWithCode(urlCode, { fromQR: true });
 } else if (urlDevice) {
   history.replaceState({}, '', location.pathname);
   handleDeviceScan(urlDevice);
