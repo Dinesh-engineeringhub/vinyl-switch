@@ -1,7 +1,7 @@
 // Minimal service worker: caches the app shell so it works offline, but uses a
 // NETWORK-FIRST strategy so users always get the latest version when online.
 // (Cache-first caused the app to keep serving a stale page after a deploy.)
-const CACHE = 'vinyl-switch-v6';
+const CACHE = 'vinyl-switch-v7';
 const SHELL = ['/', '/index.html', '/styles.css', '/app.js', '/icons/icon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {

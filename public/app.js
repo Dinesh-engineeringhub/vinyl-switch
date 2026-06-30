@@ -73,7 +73,7 @@ function startScanner() {
         show('view-home', { push: false });
         return;
       }
-      activateWithCode(code, { fromQR: true });
+      handleScannedCode(code);
     },
     () => {} // frame decode errors are normal — ignore them
   ).then(() => {
@@ -267,6 +267,38 @@ function showConfirmation(booking) {
   document.getElementById('bookingMsg').textContent = '';
 }
 
+// Device-bound activation: a scanned code only activates if it matches the
+// booking saved on THIS phone. A machine's QR carries the code the server sent
+// to that machine, so a matching code proves the scanner booked that machine.
+async function handleScannedCode(scannedCode) {
+  const msg = document.getElementById('activateMsg');
+  const raw = localStorage.getItem('vinyl_session');
+
+  if (!raw) {
+    msg.textContent = '⚠️ No booking found on this phone. Please book a session on this phone first.';
+    msg.className = 'msg err';
+    show('view-home', { push: false });
+    return;
+  }
+
+  const sess = JSON.parse(raw);
+  if (sess.code !== scannedCode) {
+    msg.textContent = `⚠️ This isn't your machine. You booked ${sess.machineName} (${sess.locationName}). Please scan the machine you booked.`;
+    msg.className = 'msg err';
+    show('view-home', { push: false });
+    return;
+  }
+
+  // It's their own booking on their own machine → activate, then clear the
+  // saved session so the code can't be reused.
+  try {
+    await activateWithCode(scannedCode, { fromQR: true });
+    localStorage.removeItem('vinyl_session');
+  } catch (_) {
+    /* activateWithCode already displayed the error */
+  }
+}
+
 async function activateWithCode(code, { fromQR = false } = {}) {
   try {
     const res = await api.post('/activate', { code });
@@ -352,7 +384,7 @@ const urlDevice = urlParams.get('device');
 
 if (urlCode) {
   history.replaceState({}, '', location.pathname);
-  activateWithCode(urlCode, { fromQR: true });
+  handleScannedCode(urlCode);
 } else if (urlDevice) {
   history.replaceState({}, '', location.pathname);
   handleDeviceScan(urlDevice);
